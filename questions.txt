@@ -1,0 +1,257 @@
+1. What is Dispatcher Servlet ?
+   Dispatcher servlet is the front controller for spring web mvc framework
+2. What does dispatcher servlet do ?
+
+   Dispatcher Servlet is the root and handles all the requests.
+   
+   Dispatcher servlet knows all the mapping in the application
+   request goes to Dispatcher servlet
+   it determines which is the right controller to execute the request
+   it looks at the URI and its request methods
+   
+   Dispatcher servlet is also responsible to send back the response..
+   @RestConroller interface -> if you see inside of this controller you have @ResponseBody annotation
+   @ResponseBody response from bean would be mapped by a msg converter into some other format. here its jackson conversion.
+   Dispatcher servlet says do the conversion.
+   it will convert bean to json and returns the response
+   
+   
+3. Who is configuring dispatcher servlet ?
+   Springboot Autoconfiguration is confuguring the dispatcher servlet
+
+4. How does the HelloWorldBean obj gets converted to JSON ..?
+   message converters
+   JacsonToObjectMaper is responsible to convert from json to bean and vice versa
+   
+5. Who is configuring the error mapping?
+   Springboot Autoconfiguration is configuring  the error mapping it creates the default erro page for us
+   
+   
+   if you want dao to be managed by spring service the mark it with annotation @Romponent or @Repository
+   
+   
+6. What is @RequestBody..?
+   Where there is a @RequstBoday on a parameter it means what ever is passed in th body of the request is directly mapped to parameter eg: User pojo
+
+7. How do you make a post request @PostMapping("/user")
+   use post request in POSTMAN site or add it as chrome plugin 
+   
+   in post man past the data in body tag and select raw radio type and also select JSON application type drop down
+   
+   you need a default no arg constructor when making a post request
+   
+8. How to return the status of created 
+   return ResponseEntity<User>.created(location).build();
+
+9. How to set URI  of the created resource into the response
+   URI location = ServletUriCompomentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(saveduser.getId()).toUri()
+   
+10.How do you say resource is properly created ..?
+   with the return of status '201 Created'. One of the best practices of HTTP
+   
+11.How do you handle exceptions in spring..? eg id resource is not found how do you throw a customized exception..
+   We create a customized exception class eg USerNotFoundException extends RuntimeException and annotate it with
+   @ResponseStatus(HttpStatus.NOT_FOUND). this gives 404 Not Found with customised message in UserNotFoundException constructor
+  
+12.How do you customize the exception handling with the structure defined by organization
+   create a ExceptionResponse class and here you can create any strutured exception..
+   Eg: 
+   Class Exceptionresponse{
+    private Date timestamp;
+    private String msg;
+    private Sting details;
+    
+    constructor(with all feilds)
+    // setters & getters
+   }
+   
+   so now when any exception happens we want the exception to be customized as above structure
+   
+   @ControllerAdvice
+   @RestController
+	public class CustomizedReponseEntityExceptionHandler extends ResponseEntityExceptionHandler{
+	
+		@ExceptionHandler(Exception.class)
+		public final ResponseEntity<Object> handleAllException(Exception ex, WebRequest request)   {
+		   ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));	
+		  return new ResponseEntity(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		
+		@ExceptionHandler(UserNotFoundException.class)
+		public final ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException ex, WebRequest request)   {
+		   ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false));	
+		  return new ResponseEntity(exceptionResponse, HttpStatus.NOT_FOUND);
+		}
+	}
+   
+13. What is @ControllerAdvice
+    it is a specialization of the component  for classes that declare methods to be shared across multiple classes
+
+14.@DeleteMapping("/users/{id}")     ==> this will return a status of 200
+
+    usually the return type will be void if still we want to confirm the deleted item then use below 
+    return ResponseEntity<User>.noContent.build();
+    
+15. What happens when you give GET to a delete mapping..?
+    we will get an response saying "405 Method Not Allowed";  
+    
+    
+16. @Valid is used for validation
+17. How do you customize the validation message..?
+    by adding a message along with annotation and overriding handleMethodArgumentNotValid method in CustomeisedreponseEntityExceptionHandler
+    eg: 
+    @Size(min=2, message="Name should have atleast 2 characters")
+	private String name;
+	
+18. HATEOAS - Hyper Media As The Engine of Application state usage:
+    This is used to give some hyper links to redirect the application from one page to another
+    these hyper links will be passes as normal json links
+    
+19. How do you localize messages i18n
+    . we need to have a separate message.properties file where we have key and value pairs
+    . we need to have a localeResolver bean in main class and set ResourceBundleMessageSource to read our messages properties file
+    
+20. how do you do content management or add application/xml implementation to your application
+    Simply add this dependency   
+    <dependency>
+		    <groupId>com.fasterxml.jackson.dataformat</groupId>
+		    <artifactId>jackson-dataformat-xml</artifactId>
+	</dependency>
+
+21. What is Swagger documentation..?
+    This give the information about the apis that are neede to be exposed to 3rd party. for that we need 
+    <dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-swagger2</artifactId>
+		    <version>2.9.2</version>
+	</dependency>
+
+	<dependency>
+		    <groupId>io.springfox</groupId>
+		    <artifactId>springfox-swagger-ui</artifactId>
+		    <version>2.9.2</version>
+	</dependency>	  
+	also urls to access the documentation
+	http://localhost:9090/v2/api-docs to see full documentation
+	url to use :: http://localhost:9090/swagger-ui.html
+	you can expose them in json format to client
+22. how do you customize Swagger documentation..
+    1. we need to implement a configuration class i.e SwaggerConfig.java	
+    2. @ApiModel(description="All details about the user")
+       add this annotations on ModelView so that client understand what exactly the purpose of this view
+    3. @ApiModelProperty(notes="Name should have atleast 2 characters")
+       on properties..
+23. How do you monitor you application..?
+    wee have to add dependency:
+    <dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-actuator</artifactId>		    
+	</dependency>	
+	dependency>
+		    <groupId>org.springframework.data</groupId>
+		    <artifactId>spring-data-rest-hal-browser</artifactId>	    
+	</dependency>
+24. What does hall browser do..?
+    makes it easy to consume the hall services provided by accurator
+    for eg: make it easy to link different likes provided by application
+    http://localhost:9090/actuator or try
+	http://localhost:9090/application
+
+25. What is filtering..?
+    it is all about filtering some data from the response
+    if you don't want to send this field as part of the response
+    
+26. What is static filtering..?  
+    hardCoding as below is called static filtering  
+    There are 2 ways to do it
+    1. add annotation at top of the class 
+       eg: @JsonIgnoreProperties(value= {"field1","field2"})
+       public class SomeBean {
+       ....
+       }
+    2. add annotation at top of property 
+    	@JsonIgnore
+		private String field3;
+27. What is dynamic filtering..?
+    In dynamic filtering we filter out the unwanted data from response depending on the type of request.
+    This is done by some special configuration while processing response.
+    i.e
+    @GetMapping("/filtering-dynamic-list")
+	public MappingJacksonValue retrieveDynamicFilteringListOfSomeBean() {
+		 List<SomeBeanDynamicFiltering> list = Arrays.asList(new SomeBeanDynamicFiltering("value1","value2","value3"),
+				new SomeBeanDynamicFiltering("value11","value22","value32"));
+		 
+		 SimpleBeanPropertyFilter simpleBeanPropertyFilter = SimpleBeanPropertyFilter.filterOutAllExcept("field2","field3");
+		 
+		 //SomeBeanDynaFilter is to be configured on SomeBeanDynamicFiltering class as annotation
+		 FilterProvider filters =  new SimpleFilterProvider().addFilter("SomeBeanDynaFilter", simpleBeanPropertyFilter);
+		 MappingJacksonValue mapping = new MappingJacksonValue(list);
+		 mapping.setFilters(filters);
+		 
+		 return mapping;
+	}
+28. What is versioning in spring..?
+    Look for personVersioningController example..	
+
+29. What are the different type of versionings..? list them
+	// cacheing is not possible because of header versioning
+	// this needs some special plugins to get data in browser
+	- Media type versioning (a.k.a "content negotiation" or "accept header")
+	  - GitHub
+	- (Custom) headers versioning
+	  - Microsoft  
+	
+	// cacheing is possible due to URI versioning  
+	- URI Versioning
+	  - Twitter
+	- Request Parameter versioning
+	  - Amazon       
+30. What are the factors considered for Versioning..?
+   - URI polluting
+   -Misuse of HTTP Headers
+   -Caching
+   -Can we execute the request on the browser..?
+   -API Documentation    
+   
+31. What are the different ways of authentications..?
+    Basic Authentication. here u will send user id and pwd as part of request
+    Advanced Authentication.
+     - Digest authentication.. here actual password is not sent to the server .
+     - Oauth Authentication
+     
+32. what is the different between "Using default security password" and "Using generated security password"..?
+    Google it..?     
+
+33. Do you know what is Richardson Maturity Model..?
+    it defines 3 different levels of restfull services.
+    Level 0: Expose SOAP WEB SERVICES in REST STYLE 
+            eg: http://server/getPosts
+                http://server/deletePosts
+    Level 1: Expose RESOURCES with PROPER URI
+    		eg: http://server/accounts
+    			http://server/accounts/10
+    Level 2: LEVEL 1 + HTTPS METHODS
+    Level 3: LEVEL 2 + HATEOAS
+             DATA + NEXT POSSIBLE ACTIONS			
+ 34. Best Proctices
+     => Consumers first. 
+        1. who are they..? they need desktop application or mobile in fuure.
+        2. naming conventions. when exposing the restfull services give a proper name so that customers can understand 
+     ==> Documentation
+     ==> Make the best use of HTTPS GET POST PUT DELETE          
+     ==> Ensure proper response status (be clear with response status , do not always send internal servel error )
+         1. 200 SUCCESS
+         2. 404 RESOURCE NOT FOUND
+         3. 400 BAD REQUEST
+         4. 201 CREATED
+         5. 401 UNAUTHORIZED
+         6. 500 SERVER ERROR    
+     ==> USE PLURALS    
+         eg: /users to /user
+             /users/1 to /user/1 
+     ==> FOR EXCEPTIONS have a consisitent approach and define user defined exceptions        
+    		  
+    		
+    
+    
+       

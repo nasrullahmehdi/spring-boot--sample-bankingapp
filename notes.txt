@@ -1,0 +1,46 @@
+# RESTfull web services
+
+Social Media Application
+
+User -> Posts
+
+
+- Retrieve all users - GET /users
+- Create a user      - POST / users
+- Retrieve one user  - GET /users/{id}
+- Delete a User      - DELETE /users/{id}
+
+- Retrieve a posts for a user - GET /users/{id}/posts
+- Create a posts for a user   - POST /users/{id}/posts
+- Retrieve details of a post  - GET /users/{id}/posts/{post-id} 
+
+
+
+#### Internationalization aka i18n
+
+### Configuration
+- LocaleResolver
+  - Default Locale - Locale.US
+-ResourceBundleMessageSource
+
+### Usage
+- Autowire MessageSource
+- @Requestheader(value = "Accept-Language", required=false) Locale locale
+- messageSource.getMessage("hellowWorld.message", null, locale)  
+
+
+### Versioning
+// cacheing is not possible because of header versioning
+// this needs some special plugins to get data in browser
+- Media type versioning (a.k.a "content negotiation" or "accept header")
+  - GitHub
+- (Custom) headers versioning
+  - Microsoft  
+
+// cacheing is possible due to URI versioning  
+- URI Versioning
+  - Twitter
+- Request Parameter versioning
+  - Amazon    
+  
+  
